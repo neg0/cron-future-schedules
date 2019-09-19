@@ -4,7 +4,7 @@ import (
 	"bufio"
 	"flag"
 	"fmt"
-	"lucid/cron"
+	"lucid/pkg/cron"
 	"os"
 	"strings"
 	"time"
@@ -45,7 +45,7 @@ func main() {
 			continue
 		}
 
-		job, err := cron.NewJob().ParseSingle(cronJob)
+		job, err := cron.NewJob().FromSingleLine(cronJob)
 		if err != nil {
 			panic(err)
 		}
@@ -55,6 +55,6 @@ func main() {
 			panic(err)
 		}
 
-		_, _ = os.Stderr.WriteString(string(nextCron) + "\n")
+		_, _ = os.Stderr.WriteString(string(nextCron))
 	}
 }

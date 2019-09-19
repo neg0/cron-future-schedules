@@ -1,6 +1,7 @@
-package cron
+package tests
 
 import (
+	"lucid/pkg/cron"
 	"strings"
 	"testing"
 )
@@ -18,7 +19,7 @@ var testCases = map[string]string{
 
 func TestParser(t *testing.T) {
 	for mockString, expected := range testCases {
-		actual, err := NewJob().ParseSingle(mockString)
+		actual, err := cron.NewJob().FromSingleLine(mockString)
 		if err != nil {
 			t.Error(err)
 		}
