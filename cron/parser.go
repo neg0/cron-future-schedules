@@ -18,6 +18,7 @@ func NewJob() *Job {
 	return &Job{}
 }
 
+// Factory method to create Job from string
 func (j *Job) ParseSingle(cron string) (*Job, error) {
 	slicedCronStr := strings.Fields(cron)
 	if len(slicedCronStr) != 3 {
@@ -45,62 +46,7 @@ func (j *Job) ParseSingle(cron string) (*Job, error) {
 	return j, nil
 }
 
-func (j *Job) formattedTime() string {
-	parsedCronTimeStr := fmt.Sprintf("%d:%d", j.Hours, j.Minutes)
-	if j.Hours < 10 {
-		parsedCronTimeStr = fmt.Sprintf("0%d:%d", j.Hours, j.Minutes)
-	}
-
-	if j.Minutes < 10 {
-		parsedCronTimeStr = fmt.Sprintf("%d:0%d", j.Hours, j.Minutes)
-	}
-
-	if j.Minutes < 10 && j.Hours < 10 {
-		parsedCronTimeStr = fmt.Sprintf("0%d:0%d", j.Hours, j.Minutes)
-	}
-
-	return parsedCronTimeStr
-}
-
-func (j *Job) processNoneRecurringJob(parsedMinutesHoursNow time.Time, parsedCronTime time.Time) ([]byte, error) {
-	if j.Hours == 0 && j.Minutes != 0 {
-		newHour, err := time.Parse(TimeFormatHHMM, fmt.Sprintf("%d:%d", parsedMinutesHoursNow.Hour(), j.Minutes))
-		if err != nil {
-			return nil, err
-		}
-
-		return []byte(fmt.Sprintf("%s %s - %s\n",
-			newHour.Format(TimeFormat(newHour)),
-			DayType(newHour, parsedMinutesHoursNow),
-			j.BinaryPath,
-		)), nil
-	}
-
-	if j.Minutes == 0 && j.Hours != 0 {
-		newHour, err := time.Parse(TimeFormatHHMM, fmt.Sprintf("%d:00", j.Hours))
-		if err != nil {
-			return nil, err
-		}
-
-		return []byte(fmt.Sprintf("%s %s - %s\n",
-			newHour.Format(TimeFormat(newHour)),
-			DayType(newHour, parsedMinutesHoursNow),
-			j.BinaryPath,
-		)), nil
-	}
-
-	day := Tomorrow
-	if parsedCronTime.Before(parsedMinutesHoursNow) {
-		day = Today
-	}
-
-	return []byte(fmt.Sprintf("%s %s - %s\n",
-		parsedMinutesHoursNow.Format(TimeFormatHHMM),
-		day,
-		j.BinaryPath,
-	)), nil
-}
-
+// Returns the next time the command is scheduled to run
 func (j *Job) NextSchedule(currentTime string) ([]byte, error) {
 	parsedMinutesHoursNow, err := time.Parse(TimeFormatHHMM, currentTime)
 	if err != nil {
@@ -130,7 +76,65 @@ func (j *Job) NextSchedule(currentTime string) ([]byte, error) {
 
 	return []byte(fmt.Sprintf(
 		"%s %s - %s\n",
-		parsedCronTime.Format(TimeFormat(parsedCronTime)),
+		parsedCronTime.Format(timeFormat(parsedCronTime)),
+		day,
+		j.BinaryPath,
+	)), nil
+}
+
+// Prepares cron entries  times to be compatible with defined time format HH:MM 00:00
+func (j *Job) formattedTime() string {
+	parsedCronTimeStr := fmt.Sprintf("%d:%d", j.Hours, j.Minutes)
+	if j.Hours < 10 {
+		parsedCronTimeStr = fmt.Sprintf("0%d:%d", j.Hours, j.Minutes)
+	}
+
+	if j.Minutes < 10 {
+		parsedCronTimeStr = fmt.Sprintf("%d:0%d", j.Hours, j.Minutes)
+	}
+
+	if j.Minutes < 10 && j.Hours < 10 {
+		parsedCronTimeStr = fmt.Sprintf("0%d:0%d", j.Hours, j.Minutes)
+	}
+
+	return parsedCronTimeStr
+}
+
+// Processing None Recurring Cron Jobs
+func (j *Job) processNoneRecurringJob(parsedMinutesHoursNow time.Time, parsedCronTime time.Time) ([]byte, error) {
+	if j.Hours == 0 && j.Minutes != 0 {
+		newHour, err := time.Parse(TimeFormatHHMM, fmt.Sprintf("%d:%d", parsedMinutesHoursNow.Hour(), j.Minutes))
+		if err != nil {
+			return nil, err
+		}
+
+		return []byte(fmt.Sprintf("%s %s - %s\n",
+			newHour.Format(timeFormat(newHour)),
+			dayType(newHour, parsedMinutesHoursNow),
+			j.BinaryPath,
+		)), nil
+	}
+
+	if j.Minutes == 0 && j.Hours != 0 {
+		newHour, err := time.Parse(TimeFormatHHMM, fmt.Sprintf("%d:00", j.Hours))
+		if err != nil {
+			return nil, err
+		}
+
+		return []byte(fmt.Sprintf("%s %s - %s\n",
+			newHour.Format(timeFormat(newHour)),
+			dayType(newHour, parsedMinutesHoursNow),
+			j.BinaryPath,
+		)), nil
+	}
+
+	day := Tomorrow
+	if parsedCronTime.Before(parsedMinutesHoursNow) {
+		day = Today
+	}
+
+	return []byte(fmt.Sprintf("%s %s - %s\n",
+		parsedMinutesHoursNow.Format(TimeFormatHHMM),
 		day,
 		j.BinaryPath,
 	)), nil

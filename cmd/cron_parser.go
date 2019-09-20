@@ -10,6 +10,8 @@ import (
 	"time"
 )
 
+// CLI application to accept and list next scheduled cron job by argument `current-time`
+// By default `current-time` if not defined will be current time of machine
 func main() {
 	currentTime := flag.String(
 		"current-time",

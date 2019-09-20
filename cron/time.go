@@ -25,7 +25,7 @@ func setTime(slicedString string) (int, error) {
 	return 0, nil
 }
 
-func DayType(newHour time.Time, parsedMinutesHoursNow time.Time) string {
+func dayType(newHour time.Time, parsedMinutesHoursNow time.Time) string {
 	day := Today
 	if newHour.Before(parsedMinutesHoursNow) {
 		day = Tomorrow
@@ -34,7 +34,7 @@ func DayType(newHour time.Time, parsedMinutesHoursNow time.Time) string {
 	return day
 }
 
-func TimeFormat(newHour time.Time) string {
+func timeFormat(newHour time.Time) string {
 	timeFormat := TimeFormatHHMM
 	if newHour.Hour() < 10 {
 		timeFormat = TimeFormatSimple
